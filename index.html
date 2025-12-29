@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ACCESS-ABLE | Universal Assistive System</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#4e54c8,#8f94fb);
+  color:#222;
+}
+.hidden{display:none;}
+.container{padding:18px;}
+.card{
+  background:white;
+  border-radius:18px;
+  padding:16px;
+  margin:14px 0;
+  box-shadow:0 10px 20px rgba(0,0,0,0.25);
+}
+h2,h3{text-align:center;}
+button{
+  padding:12px 16px;
+  border:none;
+  border-radius:14px;
+  background:#4e54c8;
+  color:white;
+  font-size:15px;
+  margin:6px;
+  cursor:pointer;
+}
+.red{background:#e53935;}
+.green{background:#43a047;}
+.orange{background:#fb8c00;}
+.big{font-size:18px;padding:18px;}
+textarea,input,select{
+  width:100%;
+  padding:12px;
+  font-size:15px;
+  margin-top:6px;
+}
+.topbar{
+  background:#222;
+  color:white;
+  padding:14px;
+  text-align:center;
+}
+.high-contrast{background:black;color:yellow;}
+.focus{background:#000;color:#0f0;}
+.flash{animation:flash 1s infinite;}
+@keyframes flash{
+  0%{background:red;}
+  50%{background:white;}
+  100%{background:red;}
+}
+img.pic{width:80px;margin:6px;}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="container">
+  <div class="card">
+    <h2>♿ ACCESS-ABLE</h2>
+    <p style="text-align:center">Universal Assistive Communication</p>
+    <input id="name" placeholder="Enter name">
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="ta">தமிழ்</option>
+      <option value="hi">हिंदी</option>
+    </select>
+    <button class="green big" onclick="startApp()">Enter</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+<div class="topbar" id="welcome"></div>
+<div class="container">
+
+<!-- Voice Navigation -->
+<div class="card">
+<h3>🔊 Voice Navigation</h3>
+<button onclick="speakMenu()">Speak Menu</button>
+</div>
+
+<!-- Speech to Text -->
+<div class="card">
+<h3>🎤 Speech → Text</h3>
+<button onclick="speechToText()">Listen</button>
+<p id="stt"></p>
+</div>
+
+<!-- Text to Speech -->
+<div class="card">
+<h3>🗣 Text → Speech</h3>
+<textarea id="tts"></textarea>
+<button onclick="textToSpeech()">Speak</button>
+</div>
+
+<!-- Auto Speak -->
+<div class="card">
+<h3>🧾 Auto Speak Phrases</h3>
+<button onclick="say('I need help')">Help</button>
+<button onclick="say('Call doctor')">Doctor</button>
+<button onclick="say('I need water')">Water</button>
+</div>
+
+<!-- Picture Communication -->
+<div class="card">
+<h3>🖼 Picture Communication</h3>
+<img class="pic" src="https://via.placeholder.com/80?text=Food" onclick="say('I need food')">
+<img class="pic" src="https://via.placeholder.com/80?text=Water" onclick="say('I need water')">
+<img class="pic" src="https://via.placeholder.com/80?text=Help" onclick="say('Please help me')">
+</div>
+
+<!-- Emergency -->
+<div class="card">
+<h3>🚨 Emergency</h3>
+<button class="red big" onclick="emergency()">ONE TAP EMERGENCY</button>
+<button class="orange" onclick="recordVoice()">🎙 Record Voice</button>
+<button onclick="playVoice()">▶ Play Voice</button>
+<p id="emg"></p>
+</div>
+
+<!-- Medication -->
+<div class="card">
+<h3>💊 Medication Reminder</h3>
+<input type="time" id="medTime">
+<button onclick="setMed()">Set Reminder</button>
+<p id="medTxt"></p>
+</div>
+
+<!-- Emergency Contact -->
+<div class="card">
+<h3>📞 Emergency Contact</h3>
+<input id="contact" placeholder="Enter contact number">
+<button onclick="saveContact()">Save</button>
+<button onclick="speakContact()">Speak Contact</button>
+</div>
+
+<!-- Accessibility -->
+<div class="card">
+<h3>♿ Accessibility</h3>
+<button onclick="fontPlus()">A+</button>
+<button onclick="fontMinus()">A-</button>
+<button onclick="toggleContrast()">Contrast</button>
+<button onclick="toggleFocus()">Focus</button>
+<button onclick="simpleMode()">Simple Mode</button>
+</div>
+
+<!-- Sign Reference -->
+<div class="card">
+<h3>🧏 Sign Reference</h3>
+<button onclick="showSigns()">Show</button>
+<p id="sign"></p>
+</div>
+
+<!-- History -->
+<div class="card">
+<h3>📜 History</h3>
+<button onclick="showHistory()">Show</button>
+<p id="history"></p>
+</div>
+
+</div>
+</div>
+
+<script>
+let lang="en",fs=16,voiceBlob;
+let siren=new Audio("https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg");
+
+function startApp(){
+  lang=document.getElementById("lang").value;
+  let n=document.getElementById("name").value||"User";
+  login.classList.add("hidden");
+  app.classList.remove("hidden");
+  welcome.innerText="Welcome, "+n;
+
+  let msg={
+    en:"Welcome to the assistive communication system",
+    ta:"உதவி தொடர்பு அமைப்பிற்கு வரவேற்கிறோம்",
+    hi:"सहायक संचार प्रणाली में आपका स्वागत है"
+  };
+  speak(msg[lang]);
+}
+
+function speak(t){
+  let u=new SpeechSynthesisUtterance(t);
+  u.lang=lang==="ta"?"ta-IN":lang==="hi"?"hi-IN":"en-US";
+  speechSynthesis.speak(u);
+  saveHistory(t);
+}
+
+function speakMenu(){
+  speak("Speech to text. Text to speech. Emergency. Medication reminder.");
+}
+
+function speechToText(){
+  let r=new (webkitSpeechRecognition)();
+  r.lang=lang==="ta"?"ta-IN":lang==="hi"?"hi-IN":"en-US";
+  r.start();
+  r.onresult=e=>{
+    stt.innerText=e.results[0][0].transcript;
+    saveHistory(stt.innerText);
+  };
+}
+
+function textToSpeech(){speak(tts.value);}
+
+function emergency(){
+  emg.innerText="EMERGENCY!";
+  document.body.classList.add("flash");
+  siren.loop=true; siren.play();
+  speak("Emergency. Please help");
+}
+
+function recordVoice(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
+    let r=new MediaRecorder(s);
+    r.start();
+    r.ondataavailable=e=>voiceBlob=e.data;
+    setTimeout(()=>r.stop(),4000);
+  });
+}
+
+function playVoice(){
+  if(voiceBlob)new Audio(URL.createObjectURL(voiceBlob)).play();
+}
+
+function setMed(){
+  let t=medTime.value;
+  medTxt.innerText="Reminder set at "+t;
+  setInterval(()=>{
+    let now=new Date().toTimeString().slice(0,5);
+    if(now===t)speak("Time to take medicine");
+  },60000);
+}
+
+function saveContact(){
+  localStorage.setItem("contact",contact.value);
+}
+function speakContact(){
+  speak("Emergency contact is "+localStorage.getItem("contact"));
+}
+
+function fontPlus(){fs+=2;document.body.style.fontSize=fs+"px";}
+function fontMinus(){fs-=2;document.body.style.fontSize=fs+"px";}
+function toggleContrast(){document.body.classList.toggle("high-contrast");}
+function toggleFocus(){document.body.classList.toggle("focus");}
+
+function simpleMode(){
+  document.querySelectorAll(".card").forEach(c=>c.style.display="none");
+  document.querySelectorAll(".card")[2].style.display="block";
+  document.querySelectorAll(".card")[4].style.display="block";
+}
+
+function showSigns(){
+  sign.innerText="A B C D E F G H I J K L M";
+}
+
+function saveHistory(t){
+  let h=localStorage.getItem("hist")||"";
+  localStorage.setItem("hist",h+" | "+t);
+}
+function showHistory(){
+  history.innerText=localStorage.getItem("hist")||"No history";
+}
+</script>
+
+</body>
+</html>
